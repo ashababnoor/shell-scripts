@@ -17,7 +17,6 @@ In this repository, you will find a collection of stable shell scripts that I ha
 Here is a list of the shell scripts available in this repository:
 
 - [gitit](./scripts/gitit.sh)
-- [colors](./scripts/colors.sh)
 
 Feel free to explore the scripts and use them for your own personal projects.
 
