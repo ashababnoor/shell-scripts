@@ -185,16 +185,16 @@ function do_git_push() {
     #   - If commit_count is greater than 0:
     #     - If changes_staged is 0: More changes exist. Additional changes are not staged to be committed. Need to push regardless.
     #     - If changes_staged is 1: More changes exist. Additional changes staged to be committed, need to commit. Need to push regardless.
-    
+
     if [[ -z $git_status ]]; then
-        if [[ $commits_since_last_push -eq 0 ]]; then
+        if [[ $commits_since_last_push -eq 0 && $bypass_check = false ]]; then
             # default push branch is the same as current git branch
             echo -e "On branch: ${highlight_color}${default_push_branch}${style_reset}"
             echo "No changes made. Working tree is clean"
             echo ""
             echo -e "${warning_prefix} Skipping git push"
             
-            [[ $bypass_check = false ]] && return 1
+            return 1
         fi
     else
         if [[ $commits_since_last_push -eq 0 && $bypass_check = false ]]; then
