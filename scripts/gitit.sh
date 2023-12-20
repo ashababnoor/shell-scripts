@@ -141,6 +141,26 @@ function do_git_push() {
     local bypass_check=false
 
 
+    # Parsing positional arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --force)
+                force_push=true
+                shift
+                ;;
+            --print-success)
+                print_success_message=true
+                shift
+                ;;
+            *)
+                branch="$1"
+                shift
+                ;;
+        esac
+    done
+    
+    local branch=${branch:-$default_push_branch}
+
     # Check if any remote exists
     if [[ -z $(git remote) ]]; then
         echo -e "No remote repository found"
@@ -151,11 +171,18 @@ function do_git_push() {
 
     # Check if no upstream is configured for the current branch; if not then empty branch is always pushed
     if ! git rev-parse --abbrev-ref --symbolic-full-name @{upstream} > /dev/null 2>&1; then
-        echo -e "${info_prefix} no upstream configured for the current branch"
-        echo "Empty branch will be pushed to remote repository"
-        echo ""
+        
+        # Sometimes above condition can give wrong output as upstream may not actually be set
+        # Checking if branch is found in the remote repository
+        local branch_in_remote=$(git ls-remote --heads origin | grep refs/heads/"$branch")
 
-        bypass_check=true
+        if [[ -z $branch_in_remote ]]; then
+            echo -e "${info_prefix} no upstream configured for the current branch"
+            echo "Empty branch will be pushed to remote repository"
+            echo ""
+
+            bypass_check=true
+        fi
     fi
 
 
@@ -168,9 +195,9 @@ function do_git_push() {
     local changes_staged=$?
 
     # Check if there were any commits since the last push
-    # Returns count of commits
+    # Returns commit count
     local commits_since_last_push=0
-    [[ $bypass_check = false ]] && commits_since_last_push=$(git rev-list --count @{u}..)
+    [[ $bypass_check = false ]] && commits_since_last_push=$(git rev-list --count origin/"$branch"..)
 
     # Control flow for checking before performing git push:
     # 
@@ -218,26 +245,8 @@ function do_git_push() {
             echo ""
         fi
     fi
-
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --force)
-                force_push=true
-                shift
-                ;;
-            --print-success)
-                print_success_message=true
-                shift
-                ;;
-            *)
-                branch="$1"
-                shift
-                ;;
-        esac
-    done
     
-    local branch=${branch:-$default_push_branch}
-    
+    # Perform git push 
     if [[ $force_push = true ]]; then
         execute git push --force origin "$branch"
     else
@@ -290,15 +299,7 @@ function git_add_commit_push() {
     local repo=""
     local git_repo_validity_message=""
 
-    # Check if inside a git repo or not
-    git_repo_validity_message=$(git rev-parse --is-inside-work-tree 2>&1)
-
-    if [[ $git_repo_validity_message != "true" ]]; then
-        echo -e "${fatal_prefix} $git_repo_validity_message"
-        return 1
-    fi
-
-    # Check that we have at least one argument
+    # Check if at least one argument is passed
     if [[ $# -lt 1 ]]; then
         echo -e $gitit_help_message
         return 1
@@ -326,11 +327,22 @@ function git_add_commit_push() {
         esac
     done
 
+    # Check if inside a git repo or not
+    git_repo_validity_message=$(git rev-parse --is-inside-work-tree 2>&1)
+
+    if [[ $git_repo_validity_message != "true" ]]; then
+        echo -e "${fatal_prefix} $git_repo_validity_message"
+        echo ""
+        echo "Must be inside a valid git repository to use gitit"
+        echo "$gitit_help_hint_message"
+        return 1
+    fi
+
     # Check if a commit message is provided
     if [[ -z $commit_message ]]; then
         echo -e "${error_prefix} Please provide a commit message"
         echo ""
-        echo $gitit_help_hint_message
+        echo "$gitit_help_hint_message"
         return 1
     fi
 
