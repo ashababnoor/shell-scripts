@@ -197,7 +197,7 @@ function do_git_push() {
     # Check if there were any commits since the last push
     # Returns commit count
     local commits_since_last_push=0
-    [[ $bypass_check = false ]] && commits_since_last_push=$(git rev-list --count origin/"$branch"..)
+    [[ $bypass_check == false ]] && commits_since_last_push=$(git rev-list --count origin/"$branch"..)
 
     # Control flow for checking before performing git push:
     # 
@@ -214,7 +214,7 @@ function do_git_push() {
     #     - If changes_staged is 1: More changes exist. Additional changes staged to be committed, need to commit. Need to push regardless.
 
     if [[ -z $git_status ]]; then
-        if [[ $commits_since_last_push -eq 0 && $bypass_check = false ]]; then
+        if [[ $commits_since_last_push -eq 0 && $bypass_check == false ]]; then
             # default push branch is the same as current git branch
             echo -e "On branch: ${highlight_color}${default_push_branch}${style_reset}"
             echo "No changes made. Working tree is clean"
@@ -224,7 +224,7 @@ function do_git_push() {
             return 1
         fi
     else
-        if [[ $commits_since_last_push -eq 0 && $bypass_check = false ]]; then
+        if [[ $commits_since_last_push -eq 0 && $bypass_check == false ]]; then
             echo -e "On branch: ${highlight_color}${default_push_branch}${style_reset}"
             
             if [[ $changes_staged -eq 0 ]]; then
@@ -245,15 +245,21 @@ function do_git_push() {
             echo ""
         fi
     fi
+
+    local set_upstream=""
+    if [[ $default_push_branch == $branch ]]; then
+        set_upstream="--set-upstream"
+    fi
     
     # Perform git push 
-    if [[ $force_push = true ]]; then
-        execute git push --force origin "$branch"
+    if [[ $force_push == true ]]; then
+
+        execute git push --force "$set_upstream" origin "$branch"
     else
-        execute git push origin "$branch"
+        execute git push "$set_upstream" origin "$branch"
     fi
 
-    if [[ $print_success_message = true ]]; then
+    if [[ $print_success_message == true ]]; then
         local server=$(get_git_remote_server)
         local repo=$(get_git_remote_repository)
 
@@ -347,7 +353,7 @@ function git_add_commit_push() {
     fi
 
     # Add changes to staging area if --no-add flag is not given
-    if [[ ! $skip_stage = true ]]; then
+    if [[ ! $skip_stage == true ]]; then
         execute git add .
     fi
 
