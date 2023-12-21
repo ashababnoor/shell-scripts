@@ -283,7 +283,8 @@ function do_git_push() {
     fi
 
     local set_upstream=""
-    if [[ $default_push_branch == $branch ]]; then
+    local upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+    if [[ $default_push_branch == $branch && -z $upstream ]]; then
         set_upstream="--set-upstream"
     fi
     
