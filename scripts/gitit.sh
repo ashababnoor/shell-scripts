@@ -39,8 +39,16 @@ function execute() {
         return 1
     fi
 
-    echo -e "$command_running_message $command $@"
-    $command "$@"
+    # Checking if any empty arguments are passed
+    local args=()
+    for arg in "$@"; do
+        if [ -n "$arg" ]; then
+            args+=("$arg")
+        fi
+    done
+
+    echo -e "$command_running_message $command ${args[@]}"
+    "$command" "${args[@]}"
 }
 
 
