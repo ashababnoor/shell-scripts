@@ -214,7 +214,7 @@ function do_git_push() {
 
         if [[ -z $branch_in_remote ]]; then
             echo -e "${info_prefix} no upstream configured for the current branch"
-            echo "Empty branch will be pushed to remote repository"
+            echo "New branch will be pushed to remote repository"
             echo ""
 
             bypass_check=true
