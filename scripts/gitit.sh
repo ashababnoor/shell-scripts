@@ -4,6 +4,74 @@ SCRIPT_DIR=$(cd "$(dirname -- "$0")"; pwd)
 source $SCRIPT_DIR/colors.sh
 
 
+command_running_message="${color_cyan}Running command:${style_reset}"
+info_prefix="${color_dodger_blue_bold}Info:${style_reset}"
+warning_prefix="${color_yellow_bold}Warning:${style_reset}"
+error_prefix="${color_red_bold}Error:${style_reset}"
+fatal_prefix="${color_red_bold}Fatal:${style_reset}"
+
+
+function check_command_installed() {
+    if [ $# -eq 0 ]; then
+        echo -e "${fatal_prefix} No command provided"
+        return 1
+    fi
+
+    local command=$1
+    if ! command -v $1 &> /dev/null; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+function execute() {
+    if [ $# -eq 0 ]; then
+        echo -e "${fatal_prefix} No command provided"
+        return 1
+    fi
+
+    local command=$1
+    shift
+
+    if ! command -v "$command" &> /dev/null; then
+        echo -e "${fatal_prefix} Command '$command' not found"
+        return 1
+    fi
+
+    # Checking if any empty arguments are passed
+    local args=()
+    for arg in "$@"; do
+        if [ -n "$arg" ]; then
+            args+=("$arg")
+        fi
+    done
+
+    echo -e "$command_running_message $command ${args[@]}"
+    "$command" "${args[@]}"
+}
+
+
+# Array to hold all dependencies
+dependencies=("git" "awk")
+
+# Function to check if dependencies are installed
+function check_dependencies() {
+    for dependency in "${dependencies[@]}"; do
+        check_command_installed "$dependency"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${fatal_prefix} $dependency is not installed"
+            echo ""
+            echo "$dependency must be installed to use gitit"
+            echo "Skipping gitit installation"
+            return 1
+        fi
+    done
+}
+
+check_dependencies
+
+
 gitit_name_ascii_art="""${style_bold}
            d8b  888     d8b  888    
            Y8P  888     Y8P  888    
@@ -39,31 +107,7 @@ ${style_bold}Example${style_reset}
 
 gitit_help_hint_message="Run 'gitit --help' to display help message"
 
-
-command_running_message="${color_cyan}Running command:${style_reset}"
-info_prefix="${color_dodger_blue_bold}Info:${style_reset}"
-warning_prefix="${color_yellow_bold}Warning:${style_reset}"
-error_prefix="${color_red_bold}Error:${style_reset}"
-fatal_prefix="${color_red_bold}Fatal:${style_reset}"
-
-
-function execute() {
-    if [ $# -eq 0 ]; then
-        echo -e "${fatal_prefix} No command provided"
-        return 1
-    fi
-
-    local command=$1
-    shift
-
-    if ! command -v "$command" &> /dev/null; then
-        echo -e "${fatal_prefix} Command '$command' not found"
-        return 1
-    fi
-
-    echo -e "$command_running_message $command $@"
-    $command "$@"
-}
+remote="origin"
 
 
 function check_if_valid_git_repo(){
@@ -80,7 +124,7 @@ function check_if_valid_git_repo(){
 }
 
 function get_git_remote_url(){
-    remote_url=$(git remote get-url origin)
+    remote_url=$(git remote get-url "$remote")
     echo $remote_url
 }
 
@@ -174,11 +218,11 @@ function do_git_push() {
         
         # Sometimes above condition can give wrong output as upstream may not actually be set
         # Checking if branch is found in the remote repository
-        local branch_in_remote=$(git ls-remote --heads origin | grep refs/heads/"$branch")
+        local branch_in_remote=$(git ls-remote --heads "$remote" | grep refs/heads/"$branch")
 
         if [[ -z $branch_in_remote ]]; then
             echo -e "${info_prefix} no upstream configured for the current branch"
-            echo "Empty branch will be pushed to remote repository"
+            echo "New branch will be pushed to remote repository"
             echo ""
 
             bypass_check=true
@@ -197,7 +241,7 @@ function do_git_push() {
     # Check if there were any commits since the last push
     # Returns commit count
     local commits_since_last_push=0
-    [[ $bypass_check == false ]] && commits_since_last_push=$(git rev-list --count origin/"$branch"..)
+    [[ $bypass_check == false ]] && commits_since_last_push=$(git rev-list --count "$remote"/"$branch"..)
 
     # Control flow for checking before performing git push:
     # 
@@ -247,16 +291,17 @@ function do_git_push() {
     fi
 
     local set_upstream=""
-    if [[ $default_push_branch == $branch ]]; then
+    local upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+    if [[ $default_push_branch == $branch && -z $upstream ]]; then
         set_upstream="--set-upstream"
     fi
     
     # Perform git push 
     if [[ $force_push == true ]]; then
 
-        execute git push --force "$set_upstream" origin "$branch"
+        execute git push --force "$set_upstream" "$remote" "$branch"
     else
-        execute git push "$set_upstream" origin "$branch"
+        execute git push "$set_upstream" "$remote" "$branch"
     fi
 
     if [[ $print_success_message == true ]]; then
@@ -273,7 +318,7 @@ function do_git_pull() {
     local default_pull_branch=$(get_git_current_branch)
     
     local branch=${1:-$default_pull_branch}
-    execute git pull origin "$branch"
+    execute git pull "$remote" "$branch"
 }
 
 function print_commit_success_message() {
@@ -395,6 +440,7 @@ function git_add_commit_push() {
     echo ""
     print_last_commit_changes
 }
+
 
 alias gitit=git_add_commit_push
 alias gpush="do_git_push --print-success"
