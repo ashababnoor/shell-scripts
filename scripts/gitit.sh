@@ -17,8 +17,18 @@ function check_command_installed() {
         return 1
     fi
 
+    if [ -z "$1" ]; then
+        echo -e "${fatal_prefix} Empty command provided"
+        return 1
+    fi
+
+    if [ $# -gt 1 ]; then
+        echo -e "${fatal_prefix} Too many arguments provided"
+        return 1
+    fi
+
     local command=$1
-    if ! command -v $1 &> /dev/null; then
+    if ! command -v $command &> /dev/null; then
         return 1
     else
         return 0
