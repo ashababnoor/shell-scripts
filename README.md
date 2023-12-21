@@ -24,7 +24,7 @@ Feel free to explore the scripts and use them for your own personal projects.
 
 To use any of the scripts in this repository, simply clone the repository to your local machine and navigate to the desired script's directory. Then, you can execute the script using the appropriate command.
 
-For example, to run `script1.sh`, you can use the following command:
+For example, to run `gitit`, you can use the following command:
 ```bash
 cd scripts
 source gitit.sh
