@@ -61,15 +61,18 @@ function check_dependencies() {
         check_command_installed "$dependency"
         if [[ $? -ne 0 ]]; then
             echo -e "${fatal_prefix} $dependency is not installed"
-            echo ""
             echo "$dependency must be installed to use gitit"
-            echo "Skipping gitit installation"
             return 1
         fi
     done
 }
 
-check_dependencies
+# Call the function and check its return status
+if ! check_dependencies; then
+    echo ""
+    echo "Dependency check failed, skipping gitit installation"
+    return
+fi
 
 
 gitit_name_ascii_art="""${style_bold}
