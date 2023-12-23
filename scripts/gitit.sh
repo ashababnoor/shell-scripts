@@ -63,7 +63,7 @@ function execute() {
 
 
 # Array to hold all dependencies
-dependencies=("git" "awk")
+dependencies=("git" "awk" "sed" "grep")
 
 # Function to check if dependencies are installed
 function check_dependencies() {
