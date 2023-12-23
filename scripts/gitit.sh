@@ -383,7 +383,7 @@ function git_add_commit_push() {
             --help|-h)
                 echo -e $gitit_help_message
                 return 0
-            ;;
+                ;;
             *)
                 commit_message="$1"
                 shift
