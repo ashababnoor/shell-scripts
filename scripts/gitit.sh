@@ -308,18 +308,19 @@ function do_git_push() {
     if [[ $default_push_branch == $branch && -z $upstream ]]; then
         set_upstream="--set-upstream"
     fi
-    
-    # Perform git push 
-    if [[ $force_push == true ]]; then
 
-        execute git push --force "$set_upstream" "$remote" "$branch"
-    else
-        execute git push "$set_upstream" "$remote" "$branch"
+    local force_push=""
+    if [[ $force_push == true ]]; then
+        force_push="--force"
     fi
+    
+    # Perform git push with the given arguments
+    execute git push "$set_upstream" "$force_push" "$remote" "$branch"
 
     # Check if git push was successful
     local push_success=$?
     if [[ $push_success -ne 0 ]]; then
+        echo ""
         echo -e "${error_prefix} Git push failed"
         return 1
     fi
