@@ -330,8 +330,8 @@ function do_git_push() {
     fi
 
     # Check if git push was successful
-    local push_success=$?
-    if [[ $push_success -ne 0 ]]; then
+    local push_successful=$?
+    if [[ $push_successful -ne 0 ]]; then
         echo ""
         echo -e "${error_prefix} Git push failed"
         return 1
