@@ -317,6 +317,13 @@ function do_git_push() {
         execute git push "$set_upstream" "$remote" "$branch"
     fi
 
+    # Check if git push was successful
+    local push_success=$?
+    if [[ $push_success -ne 0 ]]; then
+        echo -e "${error_prefix} Git push failed"
+        return 1
+    fi
+
     if [[ $print_success_message == true ]]; then
         local server=$(get_git_remote_server)
         local repo=$(get_git_remote_repository)
@@ -436,17 +443,10 @@ function git_add_commit_push() {
         print_commit_success_message "$branch"
     else
         if $force_push; then 
-            do_git_push --force "$branch"
+            do_git_push --force --print-success "$branch"
         else
-            do_git_push "$branch"
+            do_git_push --print-success "$branch"
         fi
-
-        server=$(get_git_remote_server)
-        repo=$(get_git_remote_repository)
-
-        # Print push success message
-        echo ""
-        print_push_success_message "$server" "$repo" "$branch"
     fi
 
     # Print last commit changes
