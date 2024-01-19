@@ -5,10 +5,10 @@ source $SCRIPT_DIR/colors.sh
 
 
 command_running_message="${color_cyan}Running command:${style_reset}"
-info_prefix="${color_dodger_blue_bold}Info:${style_reset}"
-warning_prefix="${color_yellow_bold}Warning:${style_reset}"
-error_prefix="${color_red_bold}Error:${style_reset}"
-fatal_prefix="${color_red_bold}Fatal:${style_reset}"
+info_prefix="${color_dodger_blue_bold}INFO:${style_reset}"
+warning_prefix="${color_yellow_bold}WARNING:${style_reset}"
+error_prefix="${color_red_bold}ERROR:${style_reset}"
+fatal_prefix="${color_red_bold}FATAL:${style_reset}"
 
 
 function check_command_installed() {
@@ -17,8 +17,18 @@ function check_command_installed() {
         return 1
     fi
 
+    if [ -z "$1" ]; then
+        echo -e "${fatal_prefix} Empty command provided"
+        return 1
+    fi
+
+    if [ $# -gt 1 ]; then
+        echo -e "${fatal_prefix} Too many arguments provided"
+        return 1
+    fi
+
     local command=$1
-    if ! command -v $1 &> /dev/null; then
+    if ! command -v $command &> /dev/null; then
         return 1
     else
         return 0
@@ -53,7 +63,7 @@ function execute() {
 
 
 # Array to hold all dependencies
-dependencies=("git" "awk")
+dependencies=("git" "awk" "sed" "grep")
 
 # Function to check if dependencies are installed
 function check_dependencies() {
@@ -61,15 +71,18 @@ function check_dependencies() {
         check_command_installed "$dependency"
         if [[ $? -ne 0 ]]; then
             echo -e "${fatal_prefix} $dependency is not installed"
-            echo ""
             echo "$dependency must be installed to use gitit"
-            echo "Skipping gitit installation"
             return 1
         fi
     done
 }
 
-check_dependencies
+# Call the function and check its return status
+if ! check_dependencies; then
+    echo ""
+    echo "Dependency check failed, skipping gitit installation"
+    return
+fi
 
 
 gitit_name_ascii_art="""${style_bold}
@@ -295,13 +308,21 @@ function do_git_push() {
     if [[ $default_push_branch == $branch && -z $upstream ]]; then
         set_upstream="--set-upstream"
     fi
-    
-    # Perform git push 
-    if [[ $force_push == true ]]; then
 
-        execute git push --force "$set_upstream" "$remote" "$branch"
-    else
-        execute git push "$set_upstream" "$remote" "$branch"
+    local do_force_push=""
+    if [[ $force_push == true ]]; then
+        do_force_push="--force"
+    fi
+    
+    # Perform git push with the given arguments
+    execute git push "$set_upstream" "$do_force_push" "$remote" "$branch"
+
+    # Check if git push was successful
+    local push_success=$?
+    if [[ $push_success -ne 0 ]]; then
+        echo ""
+        echo -e "${error_prefix} Git push failed"
+        return 1
     fi
 
     if [[ $print_success_message == true ]]; then
@@ -370,7 +391,7 @@ function git_add_commit_push() {
             --help|-h)
                 echo -e $gitit_help_message
                 return 0
-            ;;
+                ;;
             *)
                 commit_message="$1"
                 shift
@@ -423,17 +444,10 @@ function git_add_commit_push() {
         print_commit_success_message "$branch"
     else
         if $force_push; then 
-            do_git_push --force "$branch"
+            do_git_push --force --print-success "$branch"
         else
-            do_git_push "$branch"
+            do_git_push --print-success "$branch"
         fi
-
-        server=$(get_git_remote_server)
-        repo=$(get_git_remote_repository)
-
-        # Print push success message
-        echo ""
-        print_push_success_message "$server" "$repo" "$branch"
     fi
 
     # Print last commit changes
