@@ -309,13 +309,13 @@ function do_git_push() {
         set_upstream="--set-upstream"
     fi
 
-    local force_push=""
+    local do_force_push=""
     if [[ $force_push == true ]]; then
-        force_push="--force"
+        do_force_push="--force"
     fi
     
     # Perform git push with the given arguments
-    execute git push "$set_upstream" "$force_push" "$remote" "$branch"
+    execute git push "$set_upstream" "$do_force_push" "$remote" "$branch"
 
     # Check if git push was successful
     local push_success=$?
