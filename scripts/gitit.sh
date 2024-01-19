@@ -5,10 +5,10 @@ source $SCRIPT_DIR/colors.sh
 
 
 command_running_message="${color_cyan}Running command:${style_reset}"
-info_prefix="${color_dodger_blue_bold}Info:${style_reset}"
-warning_prefix="${color_yellow_bold}Warning:${style_reset}"
-error_prefix="${color_red_bold}Error:${style_reset}"
-fatal_prefix="${color_red_bold}Fatal:${style_reset}"
+info_prefix="${color_dodger_blue_bold}INFO:${style_reset}"
+warning_prefix="${color_yellow_bold}WARNING:${style_reset}"
+error_prefix="${color_red_bold}ERROR:${style_reset}"
+fatal_prefix="${color_red_bold}FATAL:${style_reset}"
 
 
 function check_command_installed() {
