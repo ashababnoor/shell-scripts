@@ -196,6 +196,7 @@ function do_git_push() {
     local print_success_message=false
     local highlight_color=$color_dark_orange
     local bypass_check=false
+    local push_per_commit=false
 
 
     # Parsing positional arguments
@@ -207,6 +208,10 @@ function do_git_push() {
                 ;;
             --print-success)
                 print_success_message=true
+                shift
+                ;;
+            --push-per-commit)
+                push_per_commit=true
                 shift
                 ;;
             *)
@@ -315,7 +320,14 @@ function do_git_push() {
     fi
     
     # Perform git push with the given arguments
-    execute git push "$set_upstream" "$do_force_push" "$remote" "$branch"
+    if [[ $push_per_commit == true ]]; then
+        echo "Pushing each commit individually"
+        echo ""
+        echo "Not implemented yet; defaulting to normal git push"
+         execute git push "$set_upstream" "$do_force_push" "$remote" "$branch"
+    else
+        execute git push "$set_upstream" "$do_force_push" "$remote" "$branch"
+    fi
 
     # Check if git push was successful
     local push_success=$?
