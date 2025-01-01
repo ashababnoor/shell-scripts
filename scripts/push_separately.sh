@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Set the sleep timer to a default value of 3 seconds if not provided
+default_sleep_timer=3
+sleep_timer=${1:-$default_sleep_timer}
+
 # Get the name of the current branch
 current_branch=$(git symbolic-ref --short HEAD)
 
@@ -11,7 +15,7 @@ git log --pretty=format:"%H" $last_pushed_commit..HEAD | awk '{a[i++]=$0} END {f
   echo "Pushing commit: $commit"
   git push origin $commit:$current_branch
   echo ""
-  sleep 3
+  sleep $sleep_timer
   
 done
 
