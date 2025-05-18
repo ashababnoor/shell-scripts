@@ -333,6 +333,10 @@ function do_git_push() {
         echo ""
         print_push_success_message "$server" "$repo" "$branch"
     fi
+
+    # Print last commit changes
+    echo ""
+    print_last_commit_changes
 }
 
 function do_git_pull() {
