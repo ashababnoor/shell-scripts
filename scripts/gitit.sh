@@ -194,6 +194,7 @@ function do_git_push() {
     local force_push=false
     local branch=""
     local print_success_message=false
+    local print_changes_message=false
     local highlight_color=$color_dark_orange
     local bypass_check=false
 
@@ -207,6 +208,10 @@ function do_git_push() {
                 ;;
             --print-success)
                 print_success_message=true
+                shift
+                ;;
+            --print-changes)
+                print_changes_message=true
                 shift
                 ;;
             *)
@@ -334,9 +339,11 @@ function do_git_push() {
         print_push_success_message "$server" "$repo" "$branch"
     fi
 
-    # Print last commit changes
-    echo ""
-    print_last_commit_changes
+    if [[ $print_changes_message == true ]]; then
+        # Print last commit changes
+        echo ""
+        print_last_commit_changes
+    fi
 }
 
 function do_git_pull() {
@@ -461,5 +468,5 @@ function git_add_commit_push() {
 
 
 alias gitit=git_add_commit_push
-alias gpush="do_git_push --print-success"
+alias gpush="do_git_push --print-success --print-changes"
 alias gpull=do_git_pull
