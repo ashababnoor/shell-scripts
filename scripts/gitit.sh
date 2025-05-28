@@ -189,6 +189,19 @@ function print_last_commit_changes() {
     '
 }
 
+function print_last_commit_message() {
+    local highlight_color=${1-$color_light_sea_green_bold}
+
+    local last_commit_hash=$(git log -n 1 --pretty=format:%H)
+    local last_commit_short_hash=$(git rev-parse --short $last_commit_hash)
+
+    # Get the last commit message
+    local last_commit_message=$(git log -n 1 --pretty=format:%s)
+
+    echo "Last commit message: ${highlight_color}$last_commit_short_hash${style_reset}"
+    echo "     ${last_commit_message}"
+}
+
 function do_git_push() {
     local default_push_branch=$(get_git_current_branch)
     local force_push=false
