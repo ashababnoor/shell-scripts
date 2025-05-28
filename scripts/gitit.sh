@@ -208,6 +208,7 @@ function do_git_push() {
     local branch=""
     local print_success_message=false
     local print_changes_message=false
+    local print_last_commit_msg=false
     local highlight_color=$color_dark_orange
     local bypass_check=false
 
@@ -225,6 +226,10 @@ function do_git_push() {
                 ;;
             --print-changes)
                 print_changes_message=true
+                shift
+                ;;
+             --print-last-commit-msg)
+                print_last_commit_msg=true
                 shift
                 ;;
             *)
@@ -350,6 +355,12 @@ function do_git_push() {
         # Print push success message
         echo ""
         print_push_success_message "$server" "$repo" "$branch"
+    fi
+
+    if [[ $print_last_commit_msg == true ]]; then
+        # Print last commit message
+        echo ""
+        print_last_commit_message
     fi
 
     if [[ $print_changes_message == true ]]; then
@@ -481,5 +492,5 @@ function git_add_commit_push() {
 
 
 alias gitit=git_add_commit_push
-alias gpush="do_git_push --print-success --print-changes"
+alias gpush="do_git_push --print-success --print-changes --print-last-commit-msg"
 alias gpull=do_git_pull
