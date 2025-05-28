@@ -194,11 +194,12 @@ function print_last_commit_message() {
 
     local last_commit_hash=$(git log -n 1 --pretty=format:%H)
     local last_commit_short_hash=$(git rev-parse --short $last_commit_hash)
+    local last_commit_time=$(git log -n 1 --format="%cd" --date=format:'%a %d %b %Y %H:%M:%S %z')
 
     # Get the last commit message
     local last_commit_message=$(git log -n 1 --pretty=format:%s)
 
-    echo "Last commit message: ${highlight_color}$last_commit_short_hash${style_reset}"
+    echo "Last commit message: ${highlight_color}$last_commit_short_hash${style_reset} ($last_commit_time)"
     echo "${emoji_page_with_curl}   ${last_commit_message}"
 }
 
