@@ -199,7 +199,7 @@ function print_last_commit_message() {
     local last_commit_message=$(git log -n 1 --pretty=format:%s)
 
     echo "Last commit message: ${highlight_color}$last_commit_short_hash${style_reset}"
-    echo "     ${last_commit_message}"
+    echo "${emoji_page_with_curl}   ${last_commit_message}"
 }
 
 function do_git_push() {
