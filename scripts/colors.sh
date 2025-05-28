@@ -4,6 +4,7 @@
 emoji_party_popper="\U0001F389"             # 🎉
 emoji_confetti_ball="\U0001F38A"            # 🎊
 emoji_sparkles="\U00002728"                 # ✨
+emoji_page_with_curl="\U0001F4C3"           # 📃
 
 # Define bold text and reset color and formatting
 style_bold=$(echo -e '\033[1m')             # bold text
