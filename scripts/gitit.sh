@@ -410,7 +410,7 @@ function git_add_commit_push() {
     # Check if at least one argument is passed
     if [[ $# -lt 1 ]]; then
         echo -e $gitit_help_message
-        return 1
+        return 0
     fi
 
     # Process the arguments
