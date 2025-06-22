@@ -142,19 +142,72 @@ function get_git_remote_url(){
 }
 
 function get_git_remote_server() {
-    remote_url=$(get_git_remote_url)
+    local remote_url=$(get_git_remote_url)
 
-    # Extract server
-    remote_server=$(echo $remote_url | awk -F: '{print $1}' | awk -F@ '{print $2}')
-    echo $remote_server
+    # Handle different URL formats
+    if [[ $remote_url == *"@"* ]]; then
+        # SSH format: git@github.com:username/repo.git or ssh://git@github.com/username/repo.git
+        if [[ $remote_url == ssh://* ]]; then
+            # SSH protocol format: ssh://git@github.com/username/repo.git
+            local remote_server=$(echo $remote_url | awk -F/ '{print $3}' | awk -F@ '{print $2}')
+        else
+            # Standard SSH format: git@github.com:username/repo.git
+            local remote_server=$(echo $remote_url | awk -F: '{print $1}' | awk -F@ '{print $2}')
+        fi
+        echo $remote_server
+    elif [[ $remote_url == https://* || $remote_url == http://* ]]; then
+        # HTTPS/HTTP format: https://github.com/username/repo.git
+        local remote_server=$(echo $remote_url | awk -F/ '{print $3}')
+        echo $remote_server
+    elif [[ $remote_url == git://* ]]; then
+        # Git protocol: git://github.com/username/repo.git
+        local remote_server=$(echo $remote_url | awk -F/ '{print $3}')
+        echo $remote_server
+    elif [[ $remote_url == file://* ]]; then
+        # Local file path: file:///path/to/repo.git
+        echo "local-repository"
+    else
+        # Relative or other format, assume local
+        echo "local-repository"
+    fi
 }
 
 function get_git_remote_repository(){
-    remote_url=$(get_git_remote_url)
+    local remote_url=$(get_git_remote_url)
 
-    # Extract repository
-    remote_repository=$(echo $remote_url | awk -F: '{print $2}' | sed 's/.git$//')
-    echo $remote_repository
+    # Handle different URL formats
+    if [[ $remote_url == *"@"* ]]; then
+        if [[ $remote_url == ssh://* ]]; then
+            # SSH protocol format: ssh://git@github.com/username/repo.git
+            local username=$(echo $remote_url | awk -F/ '{print $4}')
+            local repo=$(echo $remote_url | awk -F/ '{print $5}' | sed 's/.git$//')
+            echo "$username/$repo"
+        else
+            # Standard SSH format: git@github.com:username/repo.git
+            local remote_repository=$(echo $remote_url | awk -F: '{print $2}' | sed 's/.git$//')
+            echo $remote_repository
+        fi
+    elif [[ $remote_url == https://* || $remote_url == http://* ]]; then
+        # HTTPS/HTTP format: https://github.com/username/repo.git
+        local username=$(echo $remote_url | awk -F/ '{print $4}')
+        local repo=$(echo $remote_url | awk -F/ '{print $5}' | sed 's/.git$//')
+        echo "$username/$repo"
+    elif [[ $remote_url == git://* ]]; then
+        # Git protocol: git://github.com/username/repo.git
+        local username=$(echo $remote_url | awk -F/ '{print $4}')
+        local repo=$(echo $remote_url | awk -F/ '{print $5}' | sed 's/.git$//')
+        echo "$username/$repo"
+    elif [[ $remote_url == file://* ]]; then
+        # Local file path: file:///path/to/repo.git
+        local path=$(echo $remote_url | sed 's|file:///||' | sed 's|.git$||')
+        local repo=$(basename "$path")
+        echo "$repo"
+    else
+        # Relative or other format, use basename
+        local path=$(echo $remote_url | sed 's|.git$||')
+        local repo=$(basename "$path")
+        echo "$repo"
+    fi
 }
 
 function get_git_current_branch(){
