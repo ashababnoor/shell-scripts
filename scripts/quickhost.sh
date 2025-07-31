@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function quickshare() {
+function quickhost() {
     # Config
     PORT=8000
     FOLDER="."  # Serve current directory
